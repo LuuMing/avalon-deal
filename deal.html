@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Avalon - 身份发放</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  background: #1A1A2E;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+h1 {
+  font-size: 1.5em;
+  margin: 20px 0 8px;
+  color: #FFD700;
+}
+.subtitle {
+  font-size: 0.9em;
+  color: #888;
+  margin-bottom: 24px;
+}
+/* Seat grid */
+.seats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 340px;
+  margin: 0 auto;
+}
+.seat-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  border: 2px solid #444;
+  background: #16213E;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.seat-btn:active { transform: scale(0.95); }
+.seat-btn.taken {
+  background: #333;
+  color: #666;
+  border-color: #333;
+  cursor: default;
+}
+/* Role card */
+.card {
+  display: none;
+  margin: 0 auto;
+  max-width: 340px;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card.good { background: linear-gradient(135deg, #1b5e20, #2e7d32); }
+.card.evil { background: linear-gradient(135deg, #b71c1c, #c62828); }
+.card-header {
+  padding: 16px;
+  font-size: 0.95em;
+  opacity: 0.85;
+}
+.card-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.3);
+  object-fit: cover;
+  margin: 0 auto;
+  display: block;
+}
+.card-name {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 16px 0 4px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.card-team {
+  font-size: 1.1em;
+  padding: 6px 20px;
+  border-radius: 20px;
+  display: inline-block;
+  margin: 8px 0;
+}
+.card.good .card-team { background: rgba(255,255,255,0.15); color: #a5d6a7; }
+.card.evil .card-team { background: rgba(255,255,255,0.15); color: #ef9a9a; }
+.card-desc {
+  padding: 16px 24px 24px;
+  font-size: 0.9em;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.85);
+}
+.card-divider {
+  width: 60px;
+  height: 2px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 auto 12px;
+}
+/* Error */
+.error {
+  color: #E94560;
+  margin-top: 40px;
+  font-size: 1.1em;
+}
+.lock-hint {
+  margin-top: 20px;
+  font-size: 0.8em;
+  color: #666;
+}
+</style>
+</head>
+<body>
+
+<h1>Avalon</h1>
+<p class="subtitle" id="sub">选择你的座位号查看身份</p>
+<div class="seats" id="seats"></div>
+<div class="card" id="card"></div>
+<p class="error" id="err" style="display:none"></p>
+<p class="lock-hint" id="lock-hint" style="display:none">身份已锁定，刷新页面也无法更改</p>
+
+<script>
+var ROLES = [
+  {
+    name: '梅林', team: 'good', img: 'images/merlin.webp',
+    desc: '你是梅林。你知道所有坏人的身份（除了莫德雷德）。请小心隐藏自己，如果被刺客猜中，好人将失去胜利。'
+  },
+  {
+    name: '派西维尔', team: 'good', img: 'images/percival.webp',
+    desc: '你是派西维尔。你知道谁是梅林（但如果莫甘娜在场，你会看到两个人，其中一个是假的）。保护好梅林！'
+  },
+  {
+    name: '忠臣', team: 'good', img: 'images/loyal.webp',
+    desc: '你是亚瑟的忠臣。你不知道任何人的身份，只能通过发言和投票来判断局势。用你的智慧守护王国！'
+  },
+  {
+    name: '刺客', team: 'evil', img: 'images/assassin.webp',
+    desc: '你是刺客。你知道同伴的身份。如果好人完成了三个任务，你还有最后一次机会——刺杀梅林。猜中即可逆转局势！'
+  },
+  {
+    name: '莫甘娜', team: 'evil', img: 'images/morgana.webp',
+    desc: '你是莫甘娜。你知道同伴的身份。你在派西维尔眼中看起来像梅林，利用这一点制造混乱吧！'
+  },
+  {
+    name: '莫德雷德', team: 'evil', img: 'images/mordred.webp',
+    desc: '你是莫德雷德。你知道同伴的身份，但梅林无法看到你。你是隐藏最深的坏人，善用这个优势！'
+  },
+  {
+    name: '奥伯伦', team: 'evil', img: 'images/oberon.webp',
+    desc: '你是奥伯伦。你不知道同伴是谁，同伴也不知道你。你是孤独的坏人，但梅林能看到你。独自战斗吧！'
+  },
+  {
+    name: '爪牙', team: 'evil', img: 'images/minion.webp',
+    desc: '你是莫德雷德的爪牙。你知道同伴的身份（除了奥伯伦）。配合同伴破坏任务，扰乱好人的判断！'
+  }
+];
+
+var hash = location.hash.slice(1);
+if (!hash) {
+  document.getElementById('err').style.display = 'block';
+  document.getElementById('err').textContent = '无效的链接，请重新扫描二维码';
+  document.getElementById('sub').style.display = 'none';
+} else {
+  var data = hash.split(',');
+  var n = data.length;
+  var storageKey = 'avalon_seat_' + hash;
+  var takenKey = 'avalon_taken_' + hash;
+
+  // Load taken seats from localStorage
+  var taken = {};
+  try {
+    var saved = localStorage.getItem(takenKey);
+    if (saved) taken = JSON.parse(saved);
+  } catch(e) {}
+
+  // Check if this device already picked a seat
+  var mySeat = null;
+  try {
+    mySeat = localStorage.getItem(storageKey);
+  } catch(e) {}
+
+  if (mySeat !== null) {
+    // Already picked - show the role directly
+    showRole(parseInt(mySeat));
+  } else {
+    // Show seat buttons
+    buildSeats();
+  }
+
+  function buildSeats() {
+    var container = document.getElementById('seats');
+    for (var i = 0; i < n; i++) {
+      var btn = document.createElement('button');
+      btn.className = 'seat-btn';
+      btn.textContent = i + 1;
+      if (taken[i]) {
+        btn.classList.add('taken');
+      } else {
+        btn.onclick = (function(j) {
+          return function() { pickSeat(j); };
+        })(i);
+      }
+      container.appendChild(btn);
+    }
+  }
+
+  function pickSeat(seatIndex) {
+    // Lock this seat
+    try {
+      localStorage.setItem(storageKey, seatIndex);
+      taken[seatIndex] = 1;
+      localStorage.setItem(takenKey, JSON.stringify(taken));
+    } catch(e) {}
+    showRole(seatIndex);
+  }
+
+  function showRole(seatIndex) {
+    var roleIdx = parseInt(data[seatIndex]);
+    var role = ROLES[roleIdx];
+    if (!role) {
+      document.getElementById('err').style.display = 'block';
+      document.getElementById('err').textContent = '数据错误';
+      return;
+    }
+
+    document.getElementById('seats').style.display = 'none';
+    document.getElementById('sub').textContent = (seatIndex + 1) + ' 号玩家';
+
+    var card = document.getElementById('card');
+    card.className = 'card ' + role.team;
+    card.style.display = 'block';
+    card.innerHTML =
+      '<div class="card-header">' + (role.team === 'good' ? '好人阵营' : '坏人阵营') + '</div>' +
+      '<img class="card-img" src="' + role.img + '" alt="' + role.name + '">' +
+      '<div class="card-name">' + role.name + '</div>' +
+      '<span class="card-team">' + (role.team === 'good' ? '守护亚瑟王' : '效忠莫德雷德') + '</span>' +
+      '<div class="card-divider"></div>' +
+      '<div class="card-desc">' + role.desc + '</div>';
+
+    document.getElementById('lock-hint').style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>
