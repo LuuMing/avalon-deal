@@ -14,7 +14,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 20px;
 }
 h1 {
@@ -77,11 +76,54 @@ h1 {
   line-height: 1.6;
 }
 .error { color: #E94560; font-size: 1.1em; }
+/* Promo footer */
+.promo-footer {
+  margin-top: auto;
+  padding-top: 40px;
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+}
+.promo-divider {
+  width: 60px;
+  height: 1px;
+  background: #333;
+  margin: 0 auto 16px;
+}
+.promo-label {
+  font-size: 0.7em;
+  color: #555;
+  margin-bottom: 12px;
+}
+.promo-qr-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+.promo-qr-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #666;
+}
+.promo-qr-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  opacity: 0.7;
+}
+.promo-qr-item span {
+  font-size: 0.6em;
+  margin-top: 4px;
+  color: #555;
+}
 </style>
 </head>
 <body>
 
-<div id="voting">
+<div id="voting" style="margin:auto 0">
   <h1>Mission Vote</h1>
   <p class="subtitle">Choose your action</p>
   <div class="vote-buttons">
@@ -96,7 +138,7 @@ h1 {
   </div>
 </div>
 
-<div class="result" id="result">
+<div class="result" id="result" style="margin:auto 0">
   <p class="subtitle">Your result code</p>
   <div class="zodiac-icon" id="zodiacIcon"></div>
   <div class="zodiac-name" id="zodiacName"></div>
@@ -104,6 +146,21 @@ h1 {
 </div>
 
 <p class="error" id="err" style="display:none"></p>
+
+<div class="promo-footer">
+  <div class="promo-divider"></div>
+  <p class="promo-label">Get the full Avalon Helper app</p>
+  <div class="promo-qr-row">
+    <div class="promo-qr-item">
+      <img class="promo-qr-img" src="images/miniprogram-qr.png" alt="WeChat Mini Program">
+      <span>WeChat Mini Program</span>
+    </div>
+    <a class="promo-qr-item" href="https://play.google.com/store/apps/details?id=com.luming.avalonhelper2" target="_blank">
+      <img class="promo-qr-img" src="images/google-play-qr.png" alt="Google Play">
+      <span>Google Play</span>
+    </a>
+  </div>
+</div>
 
 <script>
 var ZODIAC_EMOJI = ['🐀','🐂','🐅','🐇','🐉','🐍','🐴','🐑','🐵','🐔','🐶','🐷'];
