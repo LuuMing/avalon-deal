@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Avalon - Identity Reveal</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  background: #1A1A2E;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+h1 {
+  font-size: 1.5em;
+  margin: 20px 0 8px;
+  color: #FFD700;
+}
+.subtitle {
+  font-size: 0.9em;
+  color: #888;
+  margin-bottom: 24px;
+}
+.seats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 340px;
+  margin: 0 auto;
+}
+.seat-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  border: 2px solid #444;
+  background: #16213E;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.seat-btn:active { transform: scale(0.95); }
+.seat-btn.taken {
+  background: #333;
+  color: #666;
+  border-color: #333;
+  cursor: default;
+}
+.card {
+  display: none;
+  margin: 0 auto;
+  max-width: 340px;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card.good { background: linear-gradient(135deg, #1b5e20, #2e7d32); }
+.card.evil { background: linear-gradient(135deg, #b71c1c, #c62828); }
+.card-header {
+  padding: 16px;
+  font-size: 0.95em;
+  opacity: 0.85;
+}
+.card-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.3);
+  object-fit: cover;
+  margin: 0 auto;
+  display: block;
+}
+.card-name {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 16px 0 4px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.card-team {
+  font-size: 1.1em;
+  padding: 6px 20px;
+  border-radius: 20px;
+  display: inline-block;
+  margin: 8px 0;
+}
+.card.good .card-team { background: rgba(255,255,255,0.15); color: #a5d6a7; }
+.card.evil .card-team { background: rgba(255,255,255,0.15); color: #ef9a9a; }
+.card-desc {
+  padding: 16px 24px 24px;
+  font-size: 0.9em;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.85);
+}
+.card-divider {
+  width: 60px;
+  height: 2px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 auto 12px;
+}
+.error {
+  color: #E94560;
+  margin-top: 40px;
+  font-size: 1.1em;
+}
+.lock-hint {
+  margin-top: 20px;
+  font-size: 0.8em;
+  color: #666;
+}
+</style>
+</head>
+<body>
+
+<h1>Avalon</h1>
+<p class="subtitle" id="sub">Choose your seat to view your identity</p>
+<div class="seats" id="seats"></div>
+<div class="card" id="card"></div>
+<p class="error" id="err" style="display:none"></p>
+<p class="lock-hint" id="lock-hint" style="display:none">Identity locked. Refreshing will not change it.</p>
+
+<script>
+var ROLES = [
+  {
+    name: 'Merlin', team: 'good', img: 'images/merlin.webp',
+    desc: 'You are Merlin. You know all evil players (except Mordred). Hide your identity carefully — if the Assassin finds you, the good side loses.'
+  },
+  {
+    name: 'Percival', team: 'good', img: 'images/percival.webp',
+    desc: 'You are Percival. You know who Merlin is (but if Morgana is present, you see two — one is fake). Protect Merlin!'
+  },
+  {
+    name: 'Loyal Servant', team: 'good', img: 'images/loyal.webp',
+    desc: 'You are a Loyal Servant of Arthur. You know no one\'s identity and must rely on discussion and voting. Use your wisdom to protect the kingdom!'
+  },
+  {
+    name: 'Assassin', team: 'evil', img: 'images/assassin.webp',
+    desc: 'You are the Assassin. You know your evil companions. If the good side completes three missions, you have one last chance — assassinate Merlin to steal victory!'
+  },
+  {
+    name: 'Morgana', team: 'evil', img: 'images/morgana.webp',
+    desc: 'You are Morgana. You know your evil companions. Percival sees you as Merlin — use this to create confusion!'
+  },
+  {
+    name: 'Mordred', team: 'evil', img: 'images/mordred.webp',
+    desc: 'You are Mordred. You know your evil companions, but Merlin cannot see you. You are the most hidden evil player — use this advantage wisely!'
+  },
+  {
+    name: 'Oberon', team: 'evil', img: 'images/oberon.webp',
+    desc: 'You are Oberon. You don\'t know your companions, and they don\'t know you. You are a lone wolf, but Merlin can see you. Fight alone!'
+  },
+  {
+    name: 'Minion', team: 'evil', img: 'images/minion.webp',
+    desc: 'You are a Minion of Mordred. You know your evil companions (except Oberon). Work with your allies to sabotage missions and confuse the good side!'
+  }
+];
+
+var hash = location.hash.slice(1);
+if (!hash) {
+  document.getElementById('err').style.display = 'block';
+  document.getElementById('err').textContent = 'Invalid link. Please scan the QR code again.';
+  document.getElementById('sub').style.display = 'none';
+} else {
+  var data = hash.split(',');
+  var n = data.length;
+  var storageKey = 'avalon_seat_' + hash;
+  var takenKey = 'avalon_taken_' + hash;
+
+  var taken = {};
+  try {
+    var saved = localStorage.getItem(takenKey);
+    if (saved) taken = JSON.parse(saved);
+  } catch(e) {}
+
+  var mySeat = null;
+  try {
+    mySeat = localStorage.getItem(storageKey);
+  } catch(e) {}
+
+  if (mySeat !== null) {
+    showRole(parseInt(mySeat));
+  } else {
+    buildSeats();
+  }
+
+  function buildSeats() {
+    var container = document.getElementById('seats');
+    for (var i = 0; i < n; i++) {
+      var btn = document.createElement('button');
+      btn.className = 'seat-btn';
+      btn.textContent = i + 1;
+      if (taken[i]) {
+        btn.classList.add('taken');
+      } else {
+        btn.onclick = (function(j) {
+          return function() { pickSeat(j); };
+        })(i);
+      }
+      container.appendChild(btn);
+    }
+  }
+
+  function pickSeat(seatIndex) {
+    try {
+      localStorage.setItem(storageKey, seatIndex);
+      taken[seatIndex] = 1;
+      localStorage.setItem(takenKey, JSON.stringify(taken));
+    } catch(e) {}
+    showRole(seatIndex);
+  }
+
+  function showRole(seatIndex) {
+    var roleIdx = parseInt(data[seatIndex]);
+    var role = ROLES[roleIdx];
+    if (!role) {
+      document.getElementById('err').style.display = 'block';
+      document.getElementById('err').textContent = 'Data error';
+      return;
+    }
+
+    document.getElementById('seats').style.display = 'none';
+    document.getElementById('sub').textContent = 'Player ' + (seatIndex + 1);
+
+    var card = document.getElementById('card');
+    card.className = 'card ' + role.team;
+    card.style.display = 'block';
+    card.innerHTML =
+      '<div class="card-header">' + (role.team === 'good' ? 'Good Team' : 'Evil Team') + '</div>' +
+      '<img class="card-img" src="' + role.img + '" alt="' + role.name + '">' +
+      '<div class="card-name">' + role.name + '</div>' +
+      '<span class="card-team">' + (role.team === 'good' ? 'Protect King Arthur' : 'Serve Mordred') + '</span>' +
+      '<div class="card-divider"></div>' +
+      '<div class="card-desc">' + role.desc + '</div>';
+
+    document.getElementById('lock-hint').style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>
