@@ -27,34 +27,9 @@ h1 {
   color: #888;
   margin-bottom: 24px;
 }
-.seat-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-.seat-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 3px solid #0F3460;
-  background: #16213E;
-  color: #fff;
-  font-size: 1.3em;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.seat-btn:active { transform: scale(0.95); }
 .vote-buttons {
   display: flex;
   gap: 20px;
-  margin: 0 auto;
 }
 .vote-btn {
   width: 140px;
@@ -84,11 +59,6 @@ h1 {
   border-color: #F44336;
 }
 .btn-icon { font-size: 2.5em; }
-.seat-label {
-  font-size: 1.1em;
-  color: #FFD700;
-  margin-bottom: 16px;
-}
 .result {
   display: none;
   text-align: center;
@@ -98,40 +68,21 @@ h1 {
   from { opacity: 0; transform: scale(0.8); }
   to { opacity: 1; transform: scale(1); }
 }
-.zodiac-icon {
-  font-size: 6em;
-  margin: 20px 0;
-}
-.zodiac-name {
-  font-size: 2.5em;
-  font-weight: bold;
-  margin-bottom: 16px;
-}
+.zodiac-icon { font-size: 6em; margin: 20px 0; }
+.zodiac-name { font-size: 2.5em; font-weight: bold; margin-bottom: 16px; }
 .result-hint {
   font-size: 0.9em;
   color: #888;
   margin-top: 20px;
   line-height: 1.6;
 }
-.error {
-  color: #E94560;
-  font-size: 1.1em;
-}
+.error { color: #E94560; font-size: 1.1em; }
 </style>
 </head>
 <body>
 
-<!-- Seat selection -->
-<div id="seatSelect">
+<div id="voting">
   <h1>Mission Vote</h1>
-  <p class="subtitle">Choose your seat number</p>
-  <div class="seat-grid" id="seatGrid"></div>
-</div>
-
-<!-- Vote -->
-<div id="voting" style="display:none">
-  <h1>Mission Vote</h1>
-  <p class="seat-label" id="seatLabel"></p>
   <p class="subtitle">Choose your action</p>
   <div class="vote-buttons">
     <button class="vote-btn btn-success" onclick="vote(true)">
@@ -172,76 +123,34 @@ function shuffleZodiac(hexKey) {
   return arr;
 }
 
-var hash = location.hash.slice(1);
-var parts = hash.split(',');
-var voteKey = parts[0] || '';
-var teamSeats = [];
-for (var i = 1; i < parts.length; i++) {
-  teamSeats.push(parseInt(parts[i]));
-}
-
+var voteKey = location.hash.slice(1);
 var storageKey = 'avalon_vote_' + voteKey;
-var selectedSeat = -1;
 
-if (!voteKey || teamSeats.length === 0) {
+if (!voteKey) {
   document.getElementById('err').style.display = 'block';
   document.getElementById('err').textContent = 'Invalid link. Please scan the QR code again.';
-  document.getElementById('seatSelect').style.display = 'none';
+  document.getElementById('voting').style.display = 'none';
 } else {
   var saved = null;
   try { saved = localStorage.getItem(storageKey); } catch(e) {}
   if (saved !== null) {
-    var obj = JSON.parse(saved);
-    showResult(obj.zodiacIdx);
-  } else {
-    buildSeatGrid();
+    showResult(parseInt(saved));
   }
-}
-
-function buildSeatGrid() {
-  var grid = document.getElementById('seatGrid');
-  for (var i = 0; i < teamSeats.length; i++) {
-    var btn = document.createElement('button');
-    btn.className = 'seat-btn';
-    btn.textContent = teamSeats[i];
-    btn.setAttribute('data-seat', teamSeats[i]);
-    btn.onclick = function() { selectSeat(parseInt(this.getAttribute('data-seat'))); };
-    grid.appendChild(btn);
-  }
-}
-
-function selectSeat(seat) {
-  var seatKey = 'avalon_vote_seat_' + voteKey + '_' + seat;
-  try {
-    if (localStorage.getItem(seatKey)) {
-      alert('This seat is already taken');
-      return;
-    }
-  } catch(e) {}
-
-  selectedSeat = seat;
-  try { localStorage.setItem(seatKey, '1'); } catch(e) {}
-
-  document.getElementById('seatSelect').style.display = 'none';
-  document.getElementById('voting').style.display = '';
-  document.getElementById('seatLabel').textContent = 'Seat ' + seat;
 }
 
 function vote(success) {
-  var seatIndex = teamSeats.indexOf(selectedSeat);
-  if (seatIndex < 0) return;
-
   var shuffled = shuffleZodiac(voteKey);
-  var zodiacIdx = success ? shuffled[seatIndex * 2] : shuffled[seatIndex * 2 + 1];
-
-  try {
-    localStorage.setItem(storageKey, JSON.stringify({ seat: selectedSeat, zodiacIdx: zodiacIdx }));
-  } catch(e) {}
+  var pool = [];
+  for (var i = 0; i < 10; i++) {
+    if (success && i % 2 === 0) pool.push(shuffled[i]);
+    if (!success && i % 2 === 1) pool.push(shuffled[i]);
+  }
+  var zodiacIdx = pool[Math.floor(Math.random() * pool.length)];
+  try { localStorage.setItem(storageKey, zodiacIdx); } catch(e) {}
   showResult(zodiacIdx);
 }
 
 function showResult(zodiacIdx) {
-  document.getElementById('seatSelect').style.display = 'none';
   document.getElementById('voting').style.display = 'none';
   document.getElementById('result').style.display = 'block';
   document.getElementById('zodiacIcon').textContent = ZODIAC_EMOJI[zodiacIdx];
