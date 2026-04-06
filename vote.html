@@ -123,6 +123,13 @@ h1 {
 </head>
 <body>
 
+<!-- 降级：手动选座位（没扫过发牌码时显示） -->
+<div id="seatSelect" style="display:none;margin:auto 0;text-align:center">
+  <h1>任务投票</h1>
+  <p class="subtitle">请选择你的座位号</p>
+  <div id="seatGrid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px"></div>
+</div>
+
 <div id="voting" style="margin:auto 0">
   <h1>任务投票</h1>
   <p class="subtitle">选择你要执行的行动</p>
@@ -180,30 +187,59 @@ function shuffleZodiac(hexKey) {
   return arr;
 }
 
-var voteKey = location.hash.slice(1);
-var storageKey = 'avalon_vote_' + voteKey;
+// Parse hash: key,seat1,seat2,...
+var hash = location.hash.slice(1);
+var parts = hash.split(',');
+var voteKey = parts[0] || '';
+var teamSeats = [];
+for (var i = 1; i < parts.length; i++) teamSeats.push(parseInt(parts[i]));
 
-if (!voteKey) {
+var storageKey = 'avalon_vote_' + voteKey;
+var myPosition = -1; // position in team (0-based)
+
+if (!voteKey || teamSeats.length === 0) {
   document.getElementById('err').style.display = 'block';
   document.getElementById('err').textContent = '无效的链接，请重新扫描二维码';
   document.getElementById('voting').style.display = 'none';
 } else {
+  // Check if already voted
   var saved = null;
   try { saved = localStorage.getItem(storageKey); } catch(e) {}
   if (saved !== null) {
     showResult(parseInt(saved));
+  } else {
+    // Try to auto-detect seat from deal page cache
+    var mySeat = -1;
+    try { mySeat = parseInt(localStorage.getItem('avalon_my_seat')); } catch(e) {}
+    if (mySeat > 0 && teamSeats.indexOf(mySeat) >= 0) {
+      myPosition = teamSeats.indexOf(mySeat);
+      // Show voting directly
+    } else {
+      // Fallback: manual seat selection
+      document.getElementById('voting').style.display = 'none';
+      document.getElementById('seatSelect').style.display = '';
+      var grid = document.getElementById('seatGrid');
+      for (var i = 0; i < teamSeats.length; i++) {
+        var btn = document.createElement('button');
+        btn.style.cssText = 'width:64px;height:64px;border-radius:50%;border:3px solid #0F3460;background:#16213E;color:#fff;font-size:1.3em;font-weight:bold;cursor:pointer';
+        btn.textContent = teamSeats[i];
+        btn.setAttribute('data-idx', i);
+        btn.onclick = function() {
+          myPosition = parseInt(this.getAttribute('data-idx'));
+          document.getElementById('seatSelect').style.display = 'none';
+          document.getElementById('voting').style.display = '';
+        };
+        grid.appendChild(btn);
+      }
+    }
   }
 }
 
 function vote(success) {
+  if (myPosition < 0) return;
   var shuffled = shuffleZodiac(voteKey);
-  // Even indices = success pool, odd = fail pool
-  var pool = [];
-  for (var i = 0; i < 10; i++) {
-    if (success && i % 2 === 0) pool.push(shuffled[i]);
-    if (!success && i % 2 === 1) pool.push(shuffled[i]);
-  }
-  var zodiacIdx = pool[Math.floor(Math.random() * pool.length)];
+  // Each position gets a unique pair: shuffled[pos*2]=success, shuffled[pos*2+1]=fail
+  var zodiacIdx = success ? shuffled[myPosition * 2] : shuffled[myPosition * 2 + 1];
   try { localStorage.setItem(storageKey, zodiacIdx); } catch(e) {}
   showResult(zodiacIdx);
 }

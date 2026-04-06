@@ -123,6 +123,12 @@ h1 {
 </head>
 <body>
 
+<div id="seatSelect" style="display:none;margin:auto 0;text-align:center">
+  <h1>Mission Vote</h1>
+  <p class="subtitle">Choose your seat number</p>
+  <div id="seatGrid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px"></div>
+</div>
+
 <div id="voting" style="margin:auto 0">
   <h1>Mission Vote</h1>
   <p class="subtitle">Choose your action</p>
@@ -180,10 +186,16 @@ function shuffleZodiac(hexKey) {
   return arr;
 }
 
-var voteKey = location.hash.slice(1);
-var storageKey = 'avalon_vote_' + voteKey;
+var hash = location.hash.slice(1);
+var parts = hash.split(',');
+var voteKey = parts[0] || '';
+var teamSeats = [];
+for (var i = 1; i < parts.length; i++) teamSeats.push(parseInt(parts[i]));
 
-if (!voteKey) {
+var storageKey = 'avalon_vote_' + voteKey;
+var myPosition = -1;
+
+if (!voteKey || teamSeats.length === 0) {
   document.getElementById('err').style.display = 'block';
   document.getElementById('err').textContent = 'Invalid link. Please scan the QR code again.';
   document.getElementById('voting').style.display = 'none';
@@ -192,17 +204,35 @@ if (!voteKey) {
   try { saved = localStorage.getItem(storageKey); } catch(e) {}
   if (saved !== null) {
     showResult(parseInt(saved));
+  } else {
+    var mySeat = -1;
+    try { mySeat = parseInt(localStorage.getItem('avalon_my_seat')); } catch(e) {}
+    if (mySeat > 0 && teamSeats.indexOf(mySeat) >= 0) {
+      myPosition = teamSeats.indexOf(mySeat);
+    } else {
+      document.getElementById('voting').style.display = 'none';
+      document.getElementById('seatSelect').style.display = '';
+      var grid = document.getElementById('seatGrid');
+      for (var i = 0; i < teamSeats.length; i++) {
+        var btn = document.createElement('button');
+        btn.style.cssText = 'width:64px;height:64px;border-radius:50%;border:3px solid #0F3460;background:#16213E;color:#fff;font-size:1.3em;font-weight:bold;cursor:pointer';
+        btn.textContent = teamSeats[i];
+        btn.setAttribute('data-idx', i);
+        btn.onclick = function() {
+          myPosition = parseInt(this.getAttribute('data-idx'));
+          document.getElementById('seatSelect').style.display = 'none';
+          document.getElementById('voting').style.display = '';
+        };
+        grid.appendChild(btn);
+      }
+    }
   }
 }
 
 function vote(success) {
+  if (myPosition < 0) return;
   var shuffled = shuffleZodiac(voteKey);
-  var pool = [];
-  for (var i = 0; i < 10; i++) {
-    if (success && i % 2 === 0) pool.push(shuffled[i]);
-    if (!success && i % 2 === 1) pool.push(shuffled[i]);
-  }
-  var zodiacIdx = pool[Math.floor(Math.random() * pool.length)];
+  var zodiacIdx = success ? shuffled[myPosition * 2] : shuffled[myPosition * 2 + 1];
   try { localStorage.setItem(storageKey, zodiacIdx); } catch(e) {}
   showResult(zodiacIdx);
 }

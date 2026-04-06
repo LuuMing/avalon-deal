@@ -274,6 +274,7 @@ if (!hash) {
   function pickSeat(seatIndex) {
     try {
       localStorage.setItem(storageKey, seatIndex);
+      localStorage.setItem('avalon_my_seat', seatIndex + 1);
       taken[seatIndex] = 1;
       localStorage.setItem(takenKey, JSON.stringify(taken));
     } catch(e) {}

@@ -282,6 +282,7 @@ if (!hash) {
     // Lock this seat
     try {
       localStorage.setItem(storageKey, seatIndex);
+      localStorage.setItem('avalon_my_seat', seatIndex + 1); // 1-based seat number for vote page
       taken[seatIndex] = 1;
       localStorage.setItem(takenKey, JSON.stringify(taken));
     } catch(e) {}
