@@ -282,7 +282,6 @@ if (!hash) {
     // Lock this seat
     try {
       localStorage.setItem(storageKey, seatIndex);
-      localStorage.setItem('avalon_my_seat', seatIndex + 1); // 1-based seat number for vote page
       taken[seatIndex] = 1;
       localStorage.setItem(takenKey, JSON.stringify(taken));
     } catch(e) {}
@@ -290,6 +289,8 @@ if (!hash) {
   }
 
   function showRole(seatIndex) {
+    // Always update seat cache (covers first pick + revisit from cache)
+    try { localStorage.setItem('avalon_my_seat', seatIndex + 1); } catch(e) {}
     var roleIdx = parseInt(data[seatIndex]);
     var role = ROLES[roleIdx];
     if (!role) {

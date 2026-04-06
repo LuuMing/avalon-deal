@@ -274,7 +274,6 @@ if (!hash) {
   function pickSeat(seatIndex) {
     try {
       localStorage.setItem(storageKey, seatIndex);
-      localStorage.setItem('avalon_my_seat', seatIndex + 1);
       taken[seatIndex] = 1;
       localStorage.setItem(takenKey, JSON.stringify(taken));
     } catch(e) {}
@@ -282,6 +281,7 @@ if (!hash) {
   }
 
   function showRole(seatIndex) {
+    try { localStorage.setItem('avalon_my_seat', seatIndex + 1); } catch(e) {}
     var roleIdx = parseInt(data[seatIndex]);
     var role = ROLES[roleIdx];
     if (!role) {
