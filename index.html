@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Avalon Helper - 阿瓦隆助手</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  background: #1A1A2E;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.hero-icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  margin-bottom: 20px;
+  border: 2px solid #FFD70040;
+}
+.hero h1 {
+  font-size: 2em;
+  color: #FFD700;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+.hero h1 span {
+  display: block;
+  font-size: 0.45em;
+  color: #888;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  font-weight: normal;
+}
+.hero-desc {
+  font-size: 0.95em;
+  color: #aaa;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+/* Role showcase */
+.roles {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+  max-width: 360px;
+}
+.role-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #333;
+  transition: all 0.3s;
+}
+.role-thumb.good { border-color: #4CAF5080; }
+.role-thumb.evil { border-color: #F4433680; }
+
+/* Feature list */
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 48px;
+  max-width: 320px;
+  width: 100%;
+}
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #16213E;
+  border-radius: 12px;
+  border: 1px solid #ffffff0a;
+}
+.feature-icon {
+  font-size: 1.5em;
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.feature-text {
+  font-size: 0.85em;
+  color: #ccc;
+  line-height: 1.4;
+}
+.feature-text strong {
+  color: #fff;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Divider */
+.divider {
+  width: 60px;
+  height: 1px;
+  background: #333;
+  margin: 0 auto 32px;
+}
+
+/* Download section */
+.download {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.download h2 {
+  font-size: 1.1em;
+  color: #FFD700;
+  margin-bottom: 6px;
+}
+.download p {
+  font-size: 0.8em;
+  color: #666;
+  margin-bottom: 24px;
+}
+.qr-row {
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+}
+.qr-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #aaa;
+  transition: transform 0.2s;
+}
+.qr-item:active { transform: scale(0.96); }
+.qr-img {
+  width: 140px;
+  height: 140px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #fff;
+  padding: 6px;
+  margin-bottom: 10px;
+}
+.qr-label {
+  font-size: 0.85em;
+  font-weight: 500;
+}
+.qr-sub {
+  font-size: 0.65em;
+  color: #555;
+  margin-top: 2px;
+}
+
+/* Footer */
+.footer {
+  margin-top: auto;
+  padding-top: 32px;
+  text-align: center;
+  color: #333;
+  font-size: 0.7em;
+}
+.footer a {
+  color: #555;
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <img class="hero-icon" src="images/merlin.webp" alt="Avalon">
+  <h1>Avalon Helper<span>阿瓦隆助手</span></h1>
+  <p class="hero-desc">专为阿瓦隆桌游设计的辅助工具，让每一局都更公平、更沉浸。</p>
+</div>
+
+<div class="roles">
+  <img class="role-thumb good" src="images/merlin.webp" alt="梅林">
+  <img class="role-thumb good" src="images/percival.webp" alt="派西维尔">
+  <img class="role-thumb good" src="images/loyal.webp" alt="忠臣">
+  <img class="role-thumb evil" src="images/assassin.webp" alt="刺客">
+  <img class="role-thumb evil" src="images/morgana.webp" alt="莫甘娜">
+  <img class="role-thumb evil" src="images/mordred.webp" alt="莫德雷德">
+  <img class="role-thumb evil" src="images/oberon.webp" alt="奥伯伦">
+  <img class="role-thumb evil" src="images/minion.webp" alt="爪牙">
+</div>
+
+<div class="features">
+  <div class="feature">
+    <div class="feature-icon">🎭</div>
+    <div class="feature-text">
+      <strong>语音发牌 & 旁白</strong>
+      自动分配身份，语音引导夜晚流程
+    </div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">⚔️</div>
+    <div class="feature-text">
+      <strong>任务追踪</strong>
+      实时记录每轮任务结果，一目了然
+    </div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">🤖</div>
+    <div class="feature-text">
+      <strong>AI 战局分析</strong>
+      DeepSeek 驱动，实时分析局势走向
+    </div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">📱</div>
+    <div class="feature-text">
+      <strong>扫码发牌</strong>
+      无需每人安装 App，扫码即可查看身份
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="download">
+  <h2>立即使用</h2>
+  <p>扫描二维码下载或打开</p>
+  <div class="qr-row">
+    <div class="qr-item">
+      <img class="qr-img" src="images/miniprogram-qr.png" alt="微信小程序码">
+      <span class="qr-label">微信小程序</span>
+      <span class="qr-sub">微信扫一扫</span>
+    </div>
+    <a class="qr-item" href="https://play.google.com/store/apps/details?id=com.luming.avalonhelper2" target="_blank">
+      <img class="qr-img" src="images/google-play-qr.png" alt="Google Play">
+      <span class="qr-label">Google Play</span>
+      <span class="qr-sub">Android 下载</span>
+    </a>
+  </div>
+</div>
+
+<div class="footer">
+  Avalon Helper &copy; 2025
+</div>
+
+</body>
+</html>
